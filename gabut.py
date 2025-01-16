@@ -1,14 +1,21 @@
 from tkinter import Tk, Label
 from datetime import datetime
-import time
+import os
 
 def read_events():
     events = []
+    if not os.path.exists('Countmeout.txt'):
+        print("Error: File 'Countmeout.txt' not found.")
+        return events
+
     with open('Countmeout.txt') as file:
         for line in file:
-            event, date_str = line.strip().split(',')
-            date = datetime.strptime(date_str, '%d/%m/%y')
-            events.append((event, date))
+            try:
+                event, date_str = line.strip().split(',')
+                date = datetime.strptime(date_str.strip(), '%d/%m/%y')
+                events.append((event.strip(), date))     
+            except ValueError:
+                print(f"Invalid format in line: {line.strip()}")
     return events
 
 def countdown(event_date):
@@ -34,16 +41,20 @@ def main():
     events = read_events()
     labels = []
 
-    for event, _ in events:
-        label = Label(root, font=('Helvetica', 14))
-        label.pack()
-        labels.append(label)
+    if not events:
+        Label(root, text="No events to display!", font=('Helvetica', 14)).pack()
+    else:
+        for event, _ in events:
+            label = Label(root, font=('Helvetica', 14), fg="blue")
+            label.pack()
+            labels.append(label)
 
-    def update():
-        update_countdown_labels(labels, events)
-        root.after(1000, update)
+        def update():
+            update_countdown_labels(labels, events)
+            root.after(1000, update)
 
-    update()
+        update()
+
     root.mainloop()
 
 if __name__ == "__main__":
